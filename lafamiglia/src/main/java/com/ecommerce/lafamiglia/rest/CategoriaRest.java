@@ -2,7 +2,6 @@ package com.ecommerce.lafamiglia.rest;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,15 +32,28 @@ public class CategoriaRest implements Serializable {
 		return ResponseEntity.ok(dao.findAll());
 	}
 
+	@SuppressWarnings("unchecked")
 	@GetMapping("/id/{id}")
-	public ResponseEntity<Optional<Categoria>> listarPorId(@PathVariable Long id) {
+	public ResponseEntity<Categoria> listarPorId(@PathVariable Long id) {
 		var find = dao.findById(id);
-		var response = ResponseEntity.ok(find);
 
 		if (find.isEmpty() || find == null) {
-			find.orElseThrow();
+			return (ResponseEntity<Categoria>) ResponseEntity.noContent();
 		}
-		return response;
+		
+		return  find.map(r -> ResponseEntity.ok(r))
+				.orElse(ResponseEntity.notFound().build());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@GetMapping("/tipo/{tipo}")
+	public ResponseEntity<List<Categoria>> listarPorTipo(@PathVariable String tipo){
+		
+		var find = dao.findAllByTipoContainingIgnoreCase(tipo);
+		
+		var response = find.isEmpty() || find == null || !find.equals(find) ? ResponseEntity.badRequest().build() : ResponseEntity.ok(find);
+		
+		return (ResponseEntity<List<Categoria>>) response;
 	}
 
 	@PostMapping
